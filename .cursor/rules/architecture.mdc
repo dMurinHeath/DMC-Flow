@@ -1,0 +1,15 @@
+---
+description: Apply DMC Flow architecture constraints when changing TypeScript or React files.
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# DMC Flow architecture
+
+- Read the relevant local Next.js 16 guide in `node_modules/next/dist/docs/` before using or changing framework conventions.
+- Use Server Components by default; justify every `"use client"` boundary.
+- Keep route composition in `app/`, reusable UI in `components/`, pure business rules in `lib/domain/`, and privileged I/O in `lib/server/`.
+- Client Components must not import `lib/server/` or access persistence directly.
+- Keep domain logic independent of React and Next.js where practical.
+- Reuse existing patterns; do not add speculative layers, duplicate capability or unrelated refactoring.
+- Do not add a dependency without verifying its package identity, maintenance, licence, need and approved risk route.
