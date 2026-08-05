@@ -1,0 +1,17 @@
+---
+description: Apply the DMC controlled-change lifecycle to every implementation task.
+globs:
+alwaysApply: true
+---
+
+# Controlled-change workflow
+
+- Begin in read-only Ask/Plan mode.
+- Define Context, Objective, Constraints, Contract, Done-test and Out of scope.
+- State affected files, assumptions, risk route and requested command permissions.
+- Do not edit until a human explicitly approves the plan.
+- Implement one objective with the smallest coherent diff.
+- Stop if scope, contract, dependencies, risk or required files change.
+- Never hide baseline failures or weaken a check to make it pass.
+- Review the complete diff and preserve verification evidence before commit.
+- Cursor must not commit, push, merge, deploy or run destructive commands unless the human explicitly asks for that exact action.
