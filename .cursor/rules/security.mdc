@@ -1,0 +1,16 @@
+---
+description: Apply when work touches auth, permissions, tenancy, secrets, personal data, validation, persistence, external APIs, infrastructure or deployment.
+globs:
+alwaysApply: false
+---
+
+# Security stop-points
+
+- Classify this work as Controlled or Restricted before editing.
+- Report the protected boundary, likely blast radius, uncertainty and required reviewer.
+- Keep credentials and live data outside Cursor's reachable environment.
+- Enforce authorisation and tenant boundaries on the server for every read and mutation.
+- Treat identifiers as hostile input; test cross-workspace and unauthorised cases.
+- Use synthetic/local data and least-privilege identities.
+- Require explicit human approval for migrations, deployment, infrastructure, database and resource-deletion commands.
+- Stop if the threat model, data ownership, failure behaviour or rollback route is unclear.
