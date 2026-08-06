@@ -6,13 +6,29 @@ import {
   TASK_STATUSES,
   TASK_TITLE_MAX_LENGTH,
   canTransitionTaskStatus,
+  isTask,
   isTaskBlocked,
   isTaskPriority,
   isTaskRiskRoute,
   isTaskStatus,
   parseTaskDraft,
+  type Task,
   type TaskStatus,
 } from "./task";
+
+const validTask: Task = {
+  id: "task-1",
+  title: "Approve Flow Gate specification",
+  projectId: "proj-dmc-flow-pilot",
+  status: "in_progress",
+  priority: "high",
+  ownerId: "user-dm",
+  dueDate: "2026-08-06",
+  riskRoute: "controlled",
+  blockedReason: null,
+  createdAt: "2026-08-01T10:00:00.000Z",
+  updatedAt: "2026-08-01T10:00:00.000Z",
+};
 
 describe("parseTaskDraft", () => {
   it("accepts a normal valid title", () => {
@@ -216,5 +232,23 @@ describe("task closed values and guards", () => {
       expect(isTaskRiskRoute(route)).toBe(true);
     }
     expect(isTaskRiskRoute("elevated")).toBe(false);
+  });
+});
+
+describe("isTask", () => {
+  it("accepts a structurally valid task", () => {
+    expect(isTask(validTask)).toBe(true);
+    expect(isTask({ ...validTask, projectId: null, ownerId: null })).toBe(true);
+  });
+
+  it("rejects unknown shapes and invalid field values", () => {
+    expect(isTask(null)).toBe(false);
+    expect(isTask([])).toBe(false);
+    expect(isTask({ ...validTask, status: "blocked" })).toBe(false);
+    expect(isTask({ ...validTask, title: "   " })).toBe(false);
+    expect(
+      isTask({ ...validTask, title: "a".repeat(TASK_TITLE_MAX_LENGTH + 1) }),
+    ).toBe(false);
+    expect(isTask({ ...validTask, priority: "urgent" })).toBe(false);
   });
 });

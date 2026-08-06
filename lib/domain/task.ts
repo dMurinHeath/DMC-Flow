@@ -96,6 +96,40 @@ export function isTaskRiskRoute(value: unknown): value is TaskRiskRoute {
   return includesValue(TASK_RISK_ROUTES, value);
 }
 
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === "string";
+}
+
+export function isTask(value: unknown): value is Task {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+
+  if (typeof value.id !== "string" || typeof value.title !== "string") {
+    return false;
+  }
+
+  const trimmedTitle = value.title.trim();
+  if (
+    trimmedTitle.length === 0 ||
+    trimmedTitle.length > TASK_TITLE_MAX_LENGTH
+  ) {
+    return false;
+  }
+
+  return (
+    isNullableString(value.projectId) &&
+    isTaskStatus(value.status) &&
+    isTaskPriority(value.priority) &&
+    isNullableString(value.ownerId) &&
+    isNullableString(value.dueDate) &&
+    isTaskRiskRoute(value.riskRoute) &&
+    isNullableString(value.blockedReason) &&
+    typeof value.createdAt === "string" &&
+    typeof value.updatedAt === "string"
+  );
+}
+
 export function isTaskBlocked(task: Pick<Task, "blockedReason">): boolean {
   return (
     typeof task.blockedReason === "string" &&
