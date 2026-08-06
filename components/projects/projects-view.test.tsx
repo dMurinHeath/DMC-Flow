@@ -146,6 +146,13 @@ describe("ProjectsView", () => {
     expect(screen.getByRole("heading", { name: "Cloud Platform" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "DMC Flow Pilot" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Legacy Board" })).toBeTruthy();
+
+    const pilotLink = screen.getByRole("link", { name: "DMC Flow Pilot" });
+    expect(pilotLink.getAttribute("href")).toBe(
+      `/projects/${PROJECT_ID_DMC_FLOW_PILOT}`,
+    );
+    const archivedLink = screen.getByRole("link", { name: "Legacy Board" });
+    expect(archivedLink.getAttribute("href")).toBe("/projects/proj-old");
   });
 
   it("creates a project via the expandable form", async () => {

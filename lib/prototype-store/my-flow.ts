@@ -9,7 +9,8 @@
  * 5. ID as final tie-breaker
  */
 import type { Project, ProjectHealth } from "@/lib/domain/project";
-import { isTaskBlocked, type Task, type TaskPriority } from "@/lib/domain/task";
+import { isTaskBlocked, type Task } from "@/lib/domain/task";
+import { compareTasks } from "./task-order";
 import { PROTOTYPE_OWNER_ID, type PrototypeState } from "./types";
 
 export type SummaryEmphasis = "teal" | "amber";
@@ -57,12 +58,6 @@ export const MY_FLOW_COPY = {
   heading: "Good morning, Danilo",
   supportingText: "A clear view of what needs your attention.",
 } as const;
-
-const PRIORITY_RANK: Record<TaskPriority, number> = {
-  high: 0,
-  medium: 1,
-  low: 2,
-};
 
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -182,33 +177,6 @@ function projectNameById(
   }
   const project = projects.find((candidate) => candidate.id === projectId);
   return project?.name ?? "Unassigned";
-}
-
-function compareTasks(left: Task, right: Task): number {
-  const priorityDiff =
-    PRIORITY_RANK[left.priority] - PRIORITY_RANK[right.priority];
-  if (priorityDiff !== 0) {
-    return priorityDiff;
-  }
-
-  const leftDue = left.dueDate ? parseDateOnly(left.dueDate) : null;
-  const rightDue = right.dueDate ? parseDateOnly(right.dueDate) : null;
-  if (leftDue && rightDue) {
-    const dueDiff = dayToOrdinal(leftDue) - dayToOrdinal(rightDue);
-    if (dueDiff !== 0) {
-      return dueDiff;
-    }
-  } else if (leftDue && !rightDue) {
-    return -1;
-  } else if (!leftDue && rightDue) {
-    return 1;
-  }
-
-  const titleDiff = left.title.localeCompare(right.title);
-  if (titleDiff !== 0) {
-    return titleDiff;
-  }
-  return left.id.localeCompare(right.id);
 }
 
 function sortTasks(tasks: readonly Task[]): Task[] {

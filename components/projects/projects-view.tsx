@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useEffect,
   useId,
@@ -392,7 +393,12 @@ export function ProjectsView({
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h3 className="text-sm font-medium text-navy break-words">
-                {project.name}
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+                >
+                  {project.name}
+                </Link>
               </h3>
               {project.description ? (
                 <p className="mt-1 text-sm text-muted break-words">
