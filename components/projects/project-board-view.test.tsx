@@ -116,7 +116,7 @@ describe("ProjectBoardView", () => {
       name: "Define acceptance criteria",
     });
     expect(titleLink.getAttribute("href")).toBe(
-      "/tasks/task-define-acceptance-criteria",
+      "/task?id=task-define-acceptance-criteria",
     );
     expect(titleLink.getAttribute("draggable")).toBe("false");
     const buttons = within(readyCard)

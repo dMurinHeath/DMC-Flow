@@ -394,7 +394,7 @@ export function ProjectsView({
             <div className="min-w-0">
               <h3 className="text-sm font-medium text-navy break-words">
                 <Link
-                  href={`/projects/${project.id}`}
+                  href={`/project?id=${encodeURIComponent(project.id)}`}
                   className="underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
                 >
                   {project.name}

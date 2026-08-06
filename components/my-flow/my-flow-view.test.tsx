@@ -244,7 +244,7 @@ describe("MyFlowView", () => {
     expect(links).toHaveLength(2);
     expect(
       links.map((link) => link.getAttribute("href")).sort(),
-    ).toEqual(["/tasks/task-a", "/tasks/task-b"]);
+    ).toEqual(["/task?id=task-a", "/task?id=task-b"]);
   });
 
   it("does not change counts when only an Inbox task is added in storage", async () => {

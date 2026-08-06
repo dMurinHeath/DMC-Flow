@@ -56,7 +56,7 @@ function TaskRow({
           <div className={`lg:grid lg:items-start lg:gap-3 ${taskColumns}`}>
             <p className="text-sm font-medium text-navy lg:truncate">
               <Link
-                href={`/tasks/${task.id}`}
+                href={`/task?id=${encodeURIComponent(task.id)}`}
                 className="underline-offset-2 hover:underline"
               >
                 {task.title}
@@ -221,7 +221,7 @@ export function MyFlowDashboard({
                   >
                     <div className="flex items-center justify-between gap-3">
                       <Link
-                        href={`/tasks/${item.id}`}
+                        href={`/task?id=${encodeURIComponent(item.id)}`}
                         className="min-w-0 break-words underline-offset-2 hover:underline"
                       >
                         {item.title}

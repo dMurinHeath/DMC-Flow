@@ -58,13 +58,13 @@ describe("MyFlowDashboard", () => {
       name: "Approve Flow Gate specification",
     });
     expect(approveLink.getAttribute("href")).toBe(
-      "/tasks/task-approve-flow-gate",
+      "/task?id=task-approve-flow-gate",
     );
     const reviewQueueLink = screen.getByRole("link", {
       name: "Tenant isolation tests",
     });
     expect(reviewQueueLink.getAttribute("href")).toBe(
-      "/tasks/task-tenant-isolation-tests",
+      "/task?id=task-tenant-isolation-tests",
     );
 
     expect(screen.queryByText("Actions")).toBeNull();

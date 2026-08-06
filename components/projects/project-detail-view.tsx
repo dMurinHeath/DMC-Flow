@@ -177,7 +177,7 @@ export function ProjectDetailView({
                     <td className="px-4 py-3">
                       <p className="font-medium text-navy break-words">
                         <Link
-                          href={`/tasks/${row.id}`}
+                          href={`/task?id=${encodeURIComponent(row.id)}`}
                           className="underline-offset-2 hover:underline"
                         >
                           {row.title}
