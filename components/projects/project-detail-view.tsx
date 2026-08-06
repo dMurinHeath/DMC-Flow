@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 import { usePrototypeStore } from "@/components/prototype-store/prototype-store-provider";
 import { TaskEditor } from "@/components/task/task-editor";
@@ -175,7 +176,12 @@ export function ProjectDetailView({
                   <tr key={row.id} className="border-t border-border align-top">
                     <td className="px-4 py-3">
                       <p className="font-medium text-navy break-words">
-                        {row.title}
+                        <Link
+                          href={`/tasks/${row.id}`}
+                          className="underline-offset-2 hover:underline"
+                        >
+                          {row.title}
+                        </Link>
                       </p>
                       {row.blocked ? (
                         <p className="mt-1 text-xs text-amber">Blocked</p>

@@ -1,5 +1,5 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
-import { TaskEditor } from "@/components/task/task-editor";
 import { AddTaskQuickCapture } from "./add-task-quick-capture";
 import type {
   MyFlowDashboardData,
@@ -9,11 +9,14 @@ import type {
 
 type MyFlowDashboardProps = {
   data: MyFlowDashboardData;
+  renderTaskActions?: (taskId: string) => ReactNode;
   onAnnounce?: (message: string) => void;
 };
 
-const TASK_COLUMNS =
+const TASK_COLUMNS_WITH_ACTIONS =
   "grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)_minmax(0,5rem)]";
+const TASK_COLUMNS_WITHOUT_ACTIONS =
+  "grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)]";
 
 function emphasisTextClass(emphasis: SummaryEmphasis): string {
   return emphasis === "amber" ? "text-amber" : "text-teal";
@@ -33,11 +36,15 @@ function OwnerMark({ initials }: { initials: string }) {
 
 function TaskRow({
   task,
-  onAnnounce,
+  renderTaskActions,
 }: {
   task: MyFlowTaskRow;
-  onAnnounce?: (message: string) => void;
+  renderTaskActions?: (taskId: string) => ReactNode;
 }) {
+  const taskColumns = renderTaskActions
+    ? TASK_COLUMNS_WITH_ACTIONS
+    : TASK_COLUMNS_WITHOUT_ACTIONS;
+
   return (
     <li className="border-t border-border py-3 first:border-t-0">
       <div className="flex gap-3">
@@ -46,8 +53,15 @@ function TaskRow({
           aria-hidden
         />
         <div className="min-w-0 flex-1">
-          <div className="lg:grid lg:grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)_minmax(0,5rem)] lg:items-start lg:gap-3">
-            <p className="text-sm font-medium text-navy lg:truncate">{task.title}</p>
+          <div className={`lg:grid lg:items-start lg:gap-3 ${taskColumns}`}>
+            <p className="text-sm font-medium text-navy lg:truncate">
+              <Link
+                href={`/tasks/${task.id}`}
+                className="underline-offset-2 hover:underline"
+              >
+                {task.title}
+              </Link>
+            </p>
             <dl className="mt-2 grid gap-2 text-sm text-muted sm:grid-cols-3 lg:mt-0 lg:contents">
               <div className="min-w-0 lg:min-w-0">
                 <dt className="sr-only">Project</dt>
@@ -64,9 +78,11 @@ function TaskRow({
                 </dd>
               </div>
             </dl>
-            <div className="mt-3 min-w-0 lg:mt-0">
-              <TaskEditor taskId={task.id} onAnnounce={onAnnounce} />
-            </div>
+            {renderTaskActions ? (
+              <div className="mt-3 min-w-0 lg:mt-0">
+                {renderTaskActions(task.id)}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -79,14 +95,18 @@ function TaskSection({
   tasks,
   emptyMessage,
   trailing,
-  onAnnounce,
+  renderTaskActions,
 }: {
   title: string;
   tasks: MyFlowTaskRow[];
   emptyMessage: string;
   trailing?: ReactNode;
-  onAnnounce?: (message: string) => void;
+  renderTaskActions?: (taskId: string) => ReactNode;
 }) {
+  const taskColumns = renderTaskActions
+    ? TASK_COLUMNS_WITH_ACTIONS
+    : TASK_COLUMNS_WITHOUT_ACTIONS;
+
   return (
     <section className="rounded-md border border-border bg-surface px-4 py-3">
       <div className="mb-2 flex items-center justify-between gap-3">
@@ -100,18 +120,22 @@ function TaskSection({
       ) : (
         <>
           <div
-            className={`mb-1 hidden gap-3 pl-7 text-xs font-medium tracking-wide text-muted uppercase lg:grid ${TASK_COLUMNS}`}
+            className={`mb-1 hidden gap-3 pl-7 text-xs font-medium tracking-wide text-muted uppercase lg:grid ${taskColumns}`}
             aria-hidden
           >
             <span>Task</span>
             <span>Project</span>
             <span>Due</span>
             <span>Owner</span>
-            <span>Actions</span>
+            {renderTaskActions ? <span>Actions</span> : null}
           </div>
           <ul>
             {tasks.map((task) => (
-              <TaskRow key={task.id} task={task} onAnnounce={onAnnounce} />
+              <TaskRow
+                key={task.id}
+                task={task}
+                renderTaskActions={renderTaskActions}
+              />
             ))}
           </ul>
         </>
@@ -120,7 +144,10 @@ function TaskSection({
   );
 }
 
-export function MyFlowDashboard({ data, onAnnounce }: MyFlowDashboardProps) {
+export function MyFlowDashboard({
+  data,
+  renderTaskActions,
+}: MyFlowDashboardProps) {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -160,13 +187,13 @@ export function MyFlowDashboard({ data, onAnnounce }: MyFlowDashboardProps) {
             title="Now"
             tasks={data.nowTasks}
             emptyMessage="No tasks in progress."
-            onAnnounce={onAnnounce}
+            renderTaskActions={renderTaskActions}
           />
           <TaskSection
             title="Next"
             tasks={data.nextTasks}
             emptyMessage="No Ready tasks yet."
-            onAnnounce={onAnnounce}
+            renderTaskActions={renderTaskActions}
             trailing={
               <span className="text-sm font-medium text-teal">
                 {data.nextTotalLabel}
@@ -193,12 +220,17 @@ export function MyFlowDashboard({ data, onAnnounce }: MyFlowDashboardProps) {
                     className="flex flex-col gap-3 py-3 text-sm text-navy first:pt-0 last:pb-0"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <span>{item.title}</span>
+                      <Link
+                        href={`/tasks/${item.id}`}
+                        className="min-w-0 break-words underline-offset-2 hover:underline"
+                      >
+                        {item.title}
+                      </Link>
                       <span className="text-muted" aria-hidden>
                         ›
                       </span>
                     </div>
-                    <TaskEditor taskId={item.id} onAnnounce={onAnnounce} />
+                    {renderTaskActions ? renderTaskActions(item.id) : null}
                   </li>
                 ))}
               </ul>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePrototypeStore } from "@/components/prototype-store/prototype-store-provider";
+import { TaskEditor } from "@/components/task/task-editor";
 import { MyFlowDashboard } from "./my-flow-dashboard";
 import {
   MY_FLOW_COPY,
@@ -54,7 +55,13 @@ export function MyFlowView({ getToday = defaultGetToday }: MyFlowViewProps) {
   const data = buildMyFlowDashboard(state, { today: getToday() });
   return (
     <>
-      <MyFlowDashboard data={data} onAnnounce={setAnnouncement} />
+      <MyFlowDashboard
+        data={data}
+        onAnnounce={setAnnouncement}
+        renderTaskActions={(taskId) => (
+          <TaskEditor taskId={taskId} onAnnounce={setAnnouncement} />
+        )}
+      />
       <p className="sr-only" aria-live="polite">
         {announcement}
       </p>

@@ -43,9 +43,8 @@ export function ProjectArchivedNotice(): ReactNode {
       className="rounded-md border border-border bg-surface px-4 py-3 text-sm text-muted"
       role="status"
     >
-      This project is archived, so tasks are read-only here. Editing would fail
-      because an archived project cannot be kept on a task draft. Restore the
-      project from the Projects list to edit again.
+      This project is archived, so tasks are read-only here. Restore the project
+      from the Projects list to re-enable editing.
     </p>
   );
 }

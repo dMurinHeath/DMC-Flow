@@ -112,6 +112,12 @@ describe("ProjectDetailView", () => {
       screen.getByRole("heading", { name: "DMC Flow Pilot" }),
     ).toBeTruthy();
     expect(screen.getByRole("table")).toBeTruthy();
+    const titleLink = screen.getByRole("link", {
+      name: "Approve Flow Gate specification",
+    });
+    expect(titleLink.getAttribute("href")).toBe(
+      "/tasks/task-approve-flow-gate",
+    );
     expect(
       screen.getByRole("button", {
         name: "Edit Approve Flow Gate specification",
@@ -168,7 +174,7 @@ describe("ProjectDetailView", () => {
       }),
     ).toBeNull();
     expect(screen.queryByRole("button", { name: /^Edit / })).toBeNull();
-    expect(screen.getByText(/cannot be kept on a task draft/i)).toBeTruthy();
+    expect(screen.getByText(/restore.*re-enable editing/i)).toBeTruthy();
   });
 
   it("shows empty state for a project with no tasks", async () => {

@@ -125,6 +125,11 @@ describe("MyFlowView", () => {
     expect(summaryValue("Reviews")).toBe("2");
     expect(summaryValue("Blocked")).toBe("1");
     expect(screen.getByText("View all 5")).toBeTruthy();
+    expect(
+      screen.getByRole("button", {
+        name: "Edit Approve Flow Gate specification",
+      }),
+    ).toBeTruthy();
   });
 
   it("replaces seed with persisted state after hydration", async () => {
@@ -235,9 +240,11 @@ describe("MyFlowView", () => {
     renderView({ state });
     await waitForDashboard();
 
+    const links = screen.getAllByRole("link", { name: "Duplicate" });
+    expect(links).toHaveLength(2);
     expect(
-      screen.getAllByText("Duplicate", { selector: "p" }),
-    ).toHaveLength(2);
+      links.map((link) => link.getAttribute("href")).sort(),
+    ).toEqual(["/tasks/task-a", "/tasks/task-b"]);
   });
 
   it("does not change counts when only an Inbox task is added in storage", async () => {

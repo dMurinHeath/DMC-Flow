@@ -54,11 +54,25 @@ describe("MyFlowDashboard", () => {
     expect(screen.getByText("Define acceptance criteria")).toBeTruthy();
     expect(screen.getByText("Prepare user research plan")).toBeTruthy();
 
+    const approveLink = screen.getByRole("link", {
+      name: "Approve Flow Gate specification",
+    });
+    expect(approveLink.getAttribute("href")).toBe(
+      "/tasks/task-approve-flow-gate",
+    );
+    const reviewQueueLink = screen.getByRole("link", {
+      name: "Tenant isolation tests",
+    });
+    expect(reviewQueueLink.getAttribute("href")).toBe(
+      "/tasks/task-tenant-isolation-tests",
+    );
+
+    expect(screen.queryByText("Actions")).toBeNull();
     expect(
-      screen.getByRole("button", {
+      screen.queryByRole("button", {
         name: "Edit Approve Flow Gate specification",
       }),
-    ).toBeTruthy();
+    ).toBeNull();
     const viewAll = screen.getByText(/View all 5/);
     expect(viewAll).toBeTruthy();
     expect(viewAll.closest("a")).toBeNull();

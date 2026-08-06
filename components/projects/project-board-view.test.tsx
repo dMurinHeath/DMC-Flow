@@ -112,6 +112,13 @@ describe("ProjectBoardView", () => {
     const readyCard = screen.getByRole("article", {
       name: /Define acceptance criteria, Ready/,
     });
+    const titleLink = within(readyCard).getByRole("link", {
+      name: "Define acceptance criteria",
+    });
+    expect(titleLink.getAttribute("href")).toBe(
+      "/tasks/task-define-acceptance-criteria",
+    );
+    expect(titleLink.getAttribute("draggable")).toBe("false");
     const buttons = within(readyCard)
       .getAllByRole("button")
       .map((button) => button.getAttribute("aria-label"));

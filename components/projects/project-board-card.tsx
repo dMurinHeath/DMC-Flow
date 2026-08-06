@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { DragEvent } from "react";
 import {
   TaskStatusActions,
@@ -57,7 +58,16 @@ export function ProjectBoardCard({
           })}
       aria-label={`${row.title}, ${taskStatusLabel(row.status)}`}
     >
-      <p className="text-sm font-medium text-navy break-words">{row.title}</p>
+      <p className="text-sm font-medium text-navy break-words">
+        <Link
+          href={`/tasks/${row.id}`}
+          draggable={false}
+          className="underline-offset-2 hover:underline"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {row.title}
+        </Link>
+      </p>
       <dl className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
         <div className="flex gap-1">
           <dt className="sr-only">Priority</dt>

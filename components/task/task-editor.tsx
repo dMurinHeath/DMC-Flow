@@ -185,7 +185,11 @@ export function TaskEditor({
     }
 
     const nextDraft = draft ?? draftFromTask(current);
-    const issues = validateTaskEdit(nextDraft, state.projects);
+    const issues = validateTaskEdit(
+      nextDraft,
+      state.projects,
+      current.projectId,
+    );
     if (issues.length > 0) {
       setFieldError(issueMessage(issues[0]!));
       titleInputRef.current?.focus();
@@ -196,7 +200,10 @@ export function TaskEditor({
       const project = state.projects.find(
         (candidate) => candidate.id === nextDraft.projectId,
       );
-      if (!project || project.archived) {
+      if (
+        !project ||
+        (project.archived && nextDraft.projectId !== current.projectId)
+      ) {
         setFieldError(
           "Choose an active project that is not archived. Refresh and try again.",
         );

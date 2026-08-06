@@ -62,26 +62,37 @@ describe("validateTaskEdit", () => {
   const projects = createPrototypeSeedState().projects;
 
   it("rejects blank, whitespace-only and over-long titles", () => {
-    expect(validateTaskEdit(draft({ title: "" }), projects)).toEqual([
+    expect(
+      validateTaskEdit(draft({ title: "" }), projects, baseTask.projectId),
+    ).toEqual([
       { field: "title", code: "empty" },
     ]);
-    expect(validateTaskEdit(draft({ title: "   " }), projects)).toEqual([
-      { field: "title", code: "empty" },
-    ]);
+    expect(
+      validateTaskEdit(draft({ title: "   " }), projects, baseTask.projectId),
+    ).toEqual([{ field: "title", code: "empty" }]);
     expect(
       validateTaskEdit(
         draft({ title: "a".repeat(TASK_TITLE_MAX_LENGTH + 1) }),
         projects,
+        baseTask.projectId,
       ),
     ).toEqual([{ field: "title", code: "too_long" }]);
   });
 
   it("rejects invalid due dates and bad projects", () => {
-    expect(validateTaskEdit(draft({ dueDate: "06-08-2026" }), projects)).toEqual(
-      [{ field: "dueDate", code: "invalid" }],
-    );
     expect(
-      validateTaskEdit(draft({ projectId: "proj-missing" }), projects),
+      validateTaskEdit(
+        draft({ dueDate: "06-08-2026" }),
+        projects,
+        baseTask.projectId,
+      ),
+    ).toEqual([{ field: "dueDate", code: "invalid" }]);
+    expect(
+      validateTaskEdit(
+        draft({ projectId: "proj-missing" }),
+        projects,
+        baseTask.projectId,
+      ),
     ).toEqual([{ field: "projectId", code: "unknown" }]);
 
     const withArchived: Project[] = projects.map((project) =>
@@ -93,6 +104,7 @@ describe("validateTaskEdit", () => {
       validateTaskEdit(
         draft({ projectId: PROJECT_ID_CLOUD_PLATFORM }),
         withArchived,
+        baseTask.projectId,
       ),
     ).toEqual([{ field: "projectId", code: "archived" }]);
   });
@@ -102,6 +114,7 @@ describe("validateTaskEdit", () => {
       validateTaskEdit(
         draft({ projectId: null, ownerId: null, dueDate: null }),
         projects,
+        baseTask.projectId,
       ),
     ).toEqual([]);
   });
@@ -113,8 +126,35 @@ describe("validateTaskEdit", () => {
           blockedReason: "x".repeat(TASK_BLOCKED_REASON_MAX_LENGTH + 1),
         }),
         projects,
+        baseTask.projectId,
       ),
     ).toEqual([{ field: "blockedReason", code: "too_long" }]);
+  });
+
+  it("allows a title-only edit when the current project is archived", () => {
+    const withArchived: Project[] = projects.map((project) =>
+      project.id === PROJECT_ID_DMC_FLOW_PILOT
+        ? { ...project, archived: true }
+        : project,
+    );
+
+    expect(
+      validateTaskEdit(
+        draft({ title: "Updated title" }),
+        withArchived,
+        PROJECT_ID_DMC_FLOW_PILOT,
+      ),
+    ).toEqual([]);
+  });
+
+  it("rejects an unknown project id whether or not it changed", () => {
+    expect(
+      validateTaskEdit(
+        draft({ projectId: "proj-missing" }),
+        projects,
+        "proj-missing",
+      ),
+    ).toEqual([{ field: "projectId", code: "unknown" }]);
   });
 });
 

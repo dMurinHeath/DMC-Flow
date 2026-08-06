@@ -6,6 +6,9 @@ import {
   type TaskPriority,
   type TaskStatus,
 } from "@/lib/domain/task";
+import { isValidDateOnly } from "./date-only";
+
+export { isValidDateOnly } from "./date-only";
 
 export const TASK_BLOCKED_REASON_MAX_LENGTH = 500;
 
@@ -24,38 +27,10 @@ export type TaskEditIssue =
   | { field: "projectId"; code: "unknown" | "archived" }
   | { field: "blockedReason"; code: "too_long" };
 
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-export function isValidDateOnly(value: string): boolean {
-  const match = DATE_ONLY.exec(value);
-  if (!match) {
-    return false;
-  }
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  if (
-    !Number.isInteger(year) ||
-    !Number.isInteger(month) ||
-    !Number.isInteger(day) ||
-    month < 1 ||
-    month > 12 ||
-    day < 1 ||
-    day > 31
-  ) {
-    return false;
-  }
-  const probe = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-  return (
-    probe.getUTCFullYear() === year &&
-    probe.getUTCMonth() === month - 1 &&
-    probe.getUTCDate() === day
-  );
-}
-
 export function validateTaskEdit(
   draft: TaskEditDraft,
   projects: readonly Project[],
+  currentProjectId: string | null,
 ): TaskEditIssue[] {
   const issues: TaskEditIssue[] = [];
   const title = draft.title.trim();
@@ -74,7 +49,7 @@ export function validateTaskEdit(
     const project = projects.find((candidate) => candidate.id === draft.projectId);
     if (!project) {
       issues.push({ field: "projectId", code: "unknown" });
-    } else if (project.archived) {
+    } else if (project.archived && draft.projectId !== currentProjectId) {
       issues.push({ field: "projectId", code: "archived" });
     }
   }

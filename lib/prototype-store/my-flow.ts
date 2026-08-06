@@ -10,6 +10,11 @@
  */
 import type { Project, ProjectHealth } from "@/lib/domain/project";
 import { isTaskBlocked, type Task } from "@/lib/domain/task";
+import {
+  dayToOrdinal,
+  parseDateOnly,
+  type CalendarDay,
+} from "@/lib/domain/date-only";
 import { compareTasks } from "./task-order";
 import { PROTOTYPE_OWNER_ID, type PrototypeState } from "./types";
 
@@ -59,53 +64,9 @@ export const MY_FLOW_COPY = {
   supportingText: "A clear view of what needs your attention.",
 } as const;
 
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
-
 export type BuildMyFlowDashboardOptions = {
   today: string;
 };
-
-type CalendarDay = {
-  year: number;
-  month: number;
-  day: number;
-};
-
-function parseDateOnly(value: string): CalendarDay | null {
-  const match = DATE_ONLY.exec(value);
-  if (!match) {
-    return null;
-  }
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  if (
-    !Number.isInteger(year) ||
-    !Number.isInteger(month) ||
-    !Number.isInteger(day) ||
-    month < 1 ||
-    month > 12 ||
-    day < 1 ||
-    day > 31
-  ) {
-    return null;
-  }
-  const probe = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-  if (
-    probe.getUTCFullYear() !== year ||
-    probe.getUTCMonth() !== month - 1 ||
-    probe.getUTCDate() !== day
-  ) {
-    return null;
-  }
-  return { year, month, day };
-}
-
-function dayToOrdinal(day: CalendarDay): number {
-  return Math.floor(
-    Date.UTC(day.year, day.month - 1, day.day) / (24 * 60 * 60 * 1000),
-  );
-}
 
 function addDays(day: CalendarDay, offset: number): CalendarDay {
   const date = new Date(Date.UTC(day.year, day.month - 1, day.day + offset, 12));
