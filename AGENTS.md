@@ -23,6 +23,7 @@ Current non-goals: production deployment, live credentials, authentication, tena
 - Tailwind CSS 4
 - npm with the committed `package-lock.json`
 - Server Components by default; add `"use client"` only where browser state or APIs require it
+- Approved automated tests: Vitest, jsdom and Testing Library (`npm test` / included in `npm run check`)
 
 ## Canonical commands
 
@@ -30,15 +31,14 @@ Current non-goals: production deployment, live credentials, authentication, tena
 - Develop: `npm run dev`
 - Lint: `npm run lint`
 - Type-check: `npm run typecheck`
+- Test: `npm test`
 - Production build: `npm run build`
 - Full current gate: `npm run check`
-
-There is no approved automated test stack yet. Do not claim tests pass. The first logic-bearing feature must propose and obtain approval for a test approach before adding dependencies.
 
 ## Architecture boundaries
 
 - `app/`: routes, layouts and route-level composition.
-- `components/`: reusable presentation components with no data-store access.
+- `components/`: reusable presentational components receive props and do not access a data store directly. Feature-level Client Components may consume the browser prototype store (for example via `usePrototypeStore()`).
 - `lib/domain/`: framework-independent types, validation and business rules.
 - `lib/server/`: server-only persistence, secrets and external integrations.
 - Client Components must not import `lib/server/`.

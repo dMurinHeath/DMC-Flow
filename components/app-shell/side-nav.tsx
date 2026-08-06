@@ -1,12 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
 
+export type PrimaryNavItem = "my-flow" | "inbox";
+
 const NAV_ITEMS = [
-  { id: "my-flow", label: "My Flow", current: true },
-  { id: "inbox", label: "Inbox", current: false },
-  { id: "reviews", label: "Reviews", current: false },
-  { id: "projects", label: "Projects", current: false },
+  { id: "my-flow", label: "My Flow", href: "/" },
+  { id: "inbox", label: "Inbox", href: "/inbox" },
+  { id: "reviews", label: "Reviews", href: null },
+  { id: "projects", label: "Projects", href: null },
 ] as const;
+
+type SideNavProps = {
+  activeNav: PrimaryNavItem;
+};
 
 function NavIcon({ name }: { name: (typeof NAV_ITEMS)[number]["id"] }) {
   const common = {
@@ -72,7 +78,7 @@ function BuildingIcon() {
   );
 }
 
-export function SideNav() {
+export function SideNav({ activeNav }: SideNavProps) {
   return (
     <aside className="side-nav flex h-full flex-col bg-navy text-on-navy lg:min-h-dvh">
       <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3 lg:px-4 lg:py-4">
@@ -95,33 +101,39 @@ export function SideNav() {
             const baseClass =
               "relative flex shrink-0 items-center gap-1 rounded-md px-2 py-2 text-sm whitespace-nowrap transition-colors sm:gap-2 sm:px-3";
 
-            if (item.current) {
+            if (item.href === null) {
               return (
                 <li key={item.id}>
-                  <Link
-                    href="/"
-                    className={`${baseClass} bg-navy-raised text-on-navy before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-teal`}
-                    aria-current="page"
+                  <span
+                    className={`${baseClass} cursor-not-allowed text-on-navy/45`}
+                    aria-disabled="true"
                   >
                     <NavIcon name={item.id} />
-                    {item.label}
-                  </Link>
+                    <span>
+                      {item.label}
+                      <span className="sr-only"> (unavailable)</span>
+                    </span>
+                  </span>
                 </li>
               );
             }
 
+            const isActive = item.id === activeNav;
+
             return (
               <li key={item.id}>
-                <span
-                  className={`${baseClass} cursor-not-allowed text-on-navy/45`}
-                  aria-disabled="true"
+                <Link
+                  href={item.href}
+                  className={
+                    isActive
+                      ? `${baseClass} bg-navy-raised text-on-navy before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:rounded-full before:bg-teal`
+                      : `${baseClass} text-on-navy/80 hover:bg-navy-raised/60 hover:text-on-navy`
+                  }
+                  aria-current={isActive ? "page" : undefined}
                 >
                   <NavIcon name={item.id} />
-                  <span>
-                    {item.label}
-                    <span className="sr-only"> (unavailable)</span>
-                  </span>
-                </span>
+                  {item.label}
+                </Link>
               </li>
             );
           })}

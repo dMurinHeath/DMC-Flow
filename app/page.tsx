@@ -4,7 +4,7 @@ import { myFlowFixture } from "@/components/my-flow/my-flow-fixtures";
 
 export default function Home() {
   return (
-    <AppShell>
+    <AppShell activeNav="my-flow">
       <MyFlowDashboard data={myFlowFixture} />
     </AppShell>
   );
