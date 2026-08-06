@@ -27,13 +27,6 @@ export function selectInboxTasks(tasks: readonly Task[]): Task[] {
     });
 }
 
-export function selectActiveProjects(projects: readonly Project[]): Project[] {
-  return projects
-    .filter((project) => project.archived === false)
-    .map((project) => ({ ...project }))
-    .sort((left, right) => left.name.localeCompare(right.name));
-}
-
 export function moveInboxTaskToReady(
   input: MoveInboxTaskToReadyInput,
 ): MoveInboxTaskToReadyResult {

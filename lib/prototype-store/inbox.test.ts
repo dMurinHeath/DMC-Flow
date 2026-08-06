@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Project } from "@/lib/domain/project";
 import type { Task } from "@/lib/domain/task";
-import {
-  moveInboxTaskToReady,
-  selectActiveProjects,
-  selectInboxTasks,
-} from "./inbox";
+import { moveInboxTaskToReady, selectInboxTasks } from "./inbox";
+import { selectActiveProjects } from "./projects";
 import {
   PROJECT_ID_CLOUD_PLATFORM,
   PROJECT_ID_DMC_FLOW_PILOT,

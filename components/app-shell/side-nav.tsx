@@ -1,13 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export type PrimaryNavItem = "my-flow" | "inbox";
+export type PrimaryNavItem = "my-flow" | "inbox" | "projects";
 
 const NAV_ITEMS = [
   { id: "my-flow", label: "My Flow", href: "/" },
   { id: "inbox", label: "Inbox", href: "/inbox" },
   { id: "reviews", label: "Reviews", href: null },
-  { id: "projects", label: "Projects", href: null },
+  { id: "projects", label: "Projects", href: "/projects" },
 ] as const;
 
 type SideNavProps = {

@@ -25,7 +25,7 @@ import {
   type TaskEditDraft,
   type TaskEditIssue,
 } from "@/lib/domain/task-edit";
-import { selectActiveProjects } from "@/lib/prototype-store/inbox";
+import { selectActiveProjects } from "@/lib/prototype-store/projects";
 import { PROTOTYPE_OWNER_ID } from "@/lib/prototype-store/types";
 import { TaskDeleteConfirmation } from "./task-delete-confirmation";
 import { TaskStatusActions } from "./task-status-actions";
