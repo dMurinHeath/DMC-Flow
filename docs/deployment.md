@@ -134,7 +134,8 @@ A failed quality gate aborts before any upload.
 - `/inbox`, `/projects`, and `/project?id=<seed-project-id>` load (proves the
   URI rewrite Function).
 - `/task?id=<seed-task-id>` loads.
-- `/nonexistent` returns the 404 page with **HTTP 404** (not 200).
+- `/nonexistent` returns the 404 page with **HTTP 404** (not 200). A missing
+  object from a private OAC origin surfaces as 403 and is mapped to that page.
 - After a subsequent deploy, a hard reload shows the new build immediately
   (HTML `max-age=0,must-revalidate`).
 

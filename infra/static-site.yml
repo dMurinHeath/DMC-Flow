@@ -153,6 +153,10 @@ Resources:
             Compress: true
             CachePolicyId: !Ref StaticAssetsCachePolicy
         CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 404
+            ResponsePagePath: /404.html
+            ErrorCachingMinTTL: 0
           - ErrorCode: 404
             ResponseCode: 404
             ResponsePagePath: /404.html
