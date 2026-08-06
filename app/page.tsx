@@ -1,11 +1,10 @@
 import { AppShell } from "@/components/app-shell/app-shell";
-import { MyFlowDashboard } from "@/components/my-flow/my-flow-dashboard";
-import { myFlowFixture } from "@/components/my-flow/my-flow-fixtures";
+import { MyFlowView } from "@/components/my-flow/my-flow-view";
 
 export default function Home() {
   return (
     <AppShell activeNav="my-flow">
-      <MyFlowDashboard data={myFlowFixture} />
+      <MyFlowView />
     </AppShell>
   );
 }

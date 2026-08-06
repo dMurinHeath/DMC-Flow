@@ -4,6 +4,7 @@ import { PrototypeStoreProvider } from "@/components/prototype-store/prototype-s
 import type { PrototypeStorage } from "@/lib/prototype-store/types";
 import { MyFlowDashboard } from "./my-flow-dashboard";
 import { myFlowFixture } from "./my-flow-fixtures";
+import type { MyFlowDashboardData } from "./my-flow-fixtures";
 
 function createMemoryStorage(
   initial: Record<string, string> = {},
@@ -20,7 +21,7 @@ function createMemoryStorage(
 }
 
 describe("MyFlowDashboard", () => {
-  it("presents the static My Flow dashboard content accessibly", async () => {
+  it("presents My Flow dashboard content accessibly", async () => {
     render(
       <PrototypeStoreProvider storage={createMemoryStorage()}>
         <MyFlowDashboard data={myFlowFixture} />
@@ -75,5 +76,33 @@ describe("MyFlowDashboard", () => {
     await waitFor(() => {
       expect((addTask as HTMLButtonElement).disabled).toBe(false);
     });
+  });
+
+  it("renders calm empty states without bare empty lists", () => {
+    const empty: MyFlowDashboardData = {
+      ...myFlowFixture,
+      summary: [
+        { label: "Now", value: "0", emphasis: "teal" },
+        { label: "Next", value: "0", emphasis: "teal" },
+        { label: "Reviews", value: "0", emphasis: "teal" },
+        { label: "Blocked", value: "0", emphasis: "amber" },
+      ],
+      nowTasks: [],
+      nextTasks: [],
+      nextTotalLabel: "View all 0",
+      reviewQueue: [],
+      projectHealth: [],
+    };
+
+    render(
+      <PrototypeStoreProvider storage={createMemoryStorage()}>
+        <MyFlowDashboard data={empty} />
+      </PrototypeStoreProvider>,
+    );
+
+    expect(screen.getByText("No tasks in progress.")).toBeTruthy();
+    expect(screen.getByText("No Ready tasks yet.")).toBeTruthy();
+    expect(screen.getByText("No tasks awaiting review.")).toBeTruthy();
+    expect(screen.getByText("No active projects.")).toBeTruthy();
   });
 });

@@ -1,40 +1,21 @@
-export type SummaryEmphasis = "teal" | "amber";
+import {
+  MY_FLOW_COPY,
+  type MyFlowDashboardData,
+} from "@/lib/prototype-store/my-flow";
 
-export type MyFlowSummaryItem = {
-  label: string;
-  value: string;
-  emphasis: SummaryEmphasis;
-};
+export type {
+  MyFlowDashboardData,
+  MyFlowProjectHealth,
+  MyFlowReviewItem,
+  MyFlowSummaryItem,
+  MyFlowTaskRow,
+  SummaryEmphasis,
+} from "@/lib/prototype-store/my-flow";
 
-export type MyFlowTaskRow = {
-  title: string;
-  project: string;
-  due: string;
-  ownerInitials: string;
-};
-
-export type MyFlowProjectHealth = {
-  name: string;
-  status: "On track" | "Needs attention";
-  emphasis: SummaryEmphasis;
-};
-
-export type MyFlowDashboardData = {
-  eyebrow: string;
-  heading: string;
-  supportingText: string;
-  summary: MyFlowSummaryItem[];
-  nowTasks: MyFlowTaskRow[];
-  nextTasks: MyFlowTaskRow[];
-  nextTotalLabel: string;
-  reviewQueue: string[];
-  projectHealth: MyFlowProjectHealth[];
-};
+export { MY_FLOW_COPY };
 
 export const myFlowFixture: MyFlowDashboardData = {
-  eyebrow: "MY FLOW",
-  heading: "Good morning, Danilo",
-  supportingText: "A clear view of what needs your attention.",
+  ...MY_FLOW_COPY,
   summary: [
     { label: "Now", value: "3", emphasis: "teal" },
     { label: "Next", value: "5", emphasis: "teal" },
@@ -43,18 +24,21 @@ export const myFlowFixture: MyFlowDashboardData = {
   ],
   nowTasks: [
     {
+      id: "task-approve-flow-gate",
       title: "Approve Flow Gate specification",
       project: "DMC Flow Pilot",
       due: "Today",
       ownerInitials: "DM",
     },
     {
+      id: "task-prototype-task-detail",
       title: "Prototype task detail",
       project: "DMC Flow Pilot",
       due: "Today",
       ownerInitials: "DM",
     },
     {
+      id: "task-review-aws-deployment",
       title: "Review AWS deployment options",
       project: "Cloud Platform",
       due: "Tomorrow",
@@ -63,27 +47,40 @@ export const myFlowFixture: MyFlowDashboardData = {
   ],
   nextTasks: [
     {
+      id: "task-define-acceptance-criteria",
       title: "Define acceptance criteria",
       project: "DMC Flow Pilot",
-      due: "Friday",
+      due: "Saturday",
       ownerInitials: "DM",
     },
     {
+      id: "task-prepare-user-research",
       title: "Prepare user research plan",
       project: "Cloud Platform",
-      due: "Next week",
+      due: "Tuesday",
       ownerInitials: "DM",
     },
   ],
   nextTotalLabel: "View all 5",
-  reviewQueue: ["Tenant isolation tests", "Project board interactions"],
+  reviewQueue: [
+    {
+      id: "task-tenant-isolation-tests",
+      title: "Tenant isolation tests",
+    },
+    {
+      id: "task-project-board-interactions",
+      title: "Project board interactions",
+    },
+  ],
   projectHealth: [
     {
+      id: "proj-dmc-flow-pilot",
       name: "DMC Flow Pilot",
       status: "On track",
       emphasis: "teal",
     },
     {
+      id: "proj-cloud-platform",
       name: "Cloud Platform",
       status: "Needs attention",
       emphasis: "amber",

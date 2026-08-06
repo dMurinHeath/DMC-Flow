@@ -64,10 +64,12 @@ function TaskRow({ task }: { task: MyFlowTaskRow }) {
 function TaskSection({
   title,
   tasks,
+  emptyMessage,
   trailing,
 }: {
   title: string;
   tasks: MyFlowTaskRow[];
+  emptyMessage: string;
   trailing?: ReactNode;
 }) {
   return (
@@ -78,20 +80,26 @@ function TaskSection({
         </h2>
         {trailing}
       </div>
-      <div
-        className={`mb-1 hidden gap-3 pl-7 text-xs font-medium tracking-wide text-muted uppercase lg:grid ${TASK_COLUMNS}`}
-        aria-hidden
-      >
-        <span>Task</span>
-        <span>Project</span>
-        <span>Due</span>
-        <span>Owner</span>
-      </div>
-      <ul>
-        {tasks.map((task) => (
-          <TaskRow key={task.title} task={task} />
-        ))}
-      </ul>
+      {tasks.length === 0 ? (
+        <p className="py-2 text-sm text-muted">{emptyMessage}</p>
+      ) : (
+        <>
+          <div
+            className={`mb-1 hidden gap-3 pl-7 text-xs font-medium tracking-wide text-muted uppercase lg:grid ${TASK_COLUMNS}`}
+            aria-hidden
+          >
+            <span>Task</span>
+            <span>Project</span>
+            <span>Due</span>
+            <span>Owner</span>
+          </div>
+          <ul>
+            {tasks.map((task) => (
+              <TaskRow key={task.id} task={task} />
+            ))}
+          </ul>
+        </>
+      )}
     </section>
   );
 }
@@ -132,10 +140,15 @@ export function MyFlowDashboard({ data }: MyFlowDashboardProps) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] lg:items-start">
         <div className="flex min-w-0 flex-col gap-4">
-          <TaskSection title="Now" tasks={data.nowTasks} />
+          <TaskSection
+            title="Now"
+            tasks={data.nowTasks}
+            emptyMessage="No tasks in progress."
+          />
           <TaskSection
             title="Next"
             tasks={data.nextTasks}
+            emptyMessage="No Ready tasks yet."
             trailing={
               <span className="text-sm font-medium text-teal">
                 {data.nextTotalLabel}
@@ -150,43 +163,53 @@ export function MyFlowDashboard({ data }: MyFlowDashboardProps) {
             <h2 className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">
               Review queue
             </h2>
-            <ul className="mt-3 divide-y divide-border">
-              {data.reviewQueue.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-center justify-between gap-3 py-3 text-sm text-navy first:pt-0 last:pb-0"
-                >
-                  <span>{item}</span>
-                  <span className="text-muted" aria-hidden>
-                    ›
-                  </span>
-                </li>
-              ))}
-            </ul>
+            {data.reviewQueue.length === 0 ? (
+              <p className="mt-3 text-sm text-muted">
+                No tasks awaiting review.
+              </p>
+            ) : (
+              <ul className="mt-3 divide-y divide-border">
+                {data.reviewQueue.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between gap-3 py-3 text-sm text-navy first:pt-0 last:pb-0"
+                  >
+                    <span>{item.title}</span>
+                    <span className="text-muted" aria-hidden>
+                      ›
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="rounded-md border border-border bg-surface px-4 py-3">
             <h2 className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">
               Project health
             </h2>
-            <ul className="mt-3 space-y-3">
-              {data.projectHealth.map((project) => (
-                <li key={project.name} className="text-sm">
-                  <p className="font-medium text-navy">{project.name}</p>
-                  <p
-                    className={`mt-1 flex items-center gap-2 ${emphasisTextClass(project.emphasis)}`}
-                  >
-                    <span
-                      className={`size-2 shrink-0 rounded-full ${
-                        project.emphasis === "amber" ? "bg-amber" : "bg-teal"
-                      }`}
-                      aria-hidden
-                    />
-                    <span>{project.status}</span>
-                  </p>
-                </li>
-              ))}
-            </ul>
+            {data.projectHealth.length === 0 ? (
+              <p className="mt-3 text-sm text-muted">No active projects.</p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {data.projectHealth.map((project) => (
+                  <li key={project.id} className="text-sm">
+                    <p className="font-medium text-navy">{project.name}</p>
+                    <p
+                      className={`mt-1 flex items-center gap-2 ${emphasisTextClass(project.emphasis)}`}
+                    >
+                      <span
+                        className={`size-2 shrink-0 rounded-full ${
+                          project.emphasis === "amber" ? "bg-amber" : "bg-teal"
+                        }`}
+                        aria-hidden
+                      />
+                      <span>{project.status}</span>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </aside>
       </div>
