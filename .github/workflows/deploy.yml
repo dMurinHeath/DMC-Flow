@@ -8,6 +8,10 @@ permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -34,6 +38,13 @@ jobs:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Sync content-hashed static assets
+        env:
+          BUCKET: ${{ vars.AWS_S3_BUCKET }}
+        run: |
+          aws s3 sync ./out/_next/static "s3://${BUCKET}/_next/static" \
+            --cache-control "public,max-age=31536000,immutable"
+
       - name: Sync HTML and non-hashed assets
         env:
           BUCKET: ${{ vars.AWS_S3_BUCKET }}
@@ -42,13 +53,6 @@ jobs:
             --delete \
             --cache-control "public,max-age=0,must-revalidate" \
             --exclude "_next/static/*"
-
-      - name: Sync content-hashed static assets
-        env:
-          BUCKET: ${{ vars.AWS_S3_BUCKET }}
-        run: |
-          aws s3 sync ./out/_next/static "s3://${BUCKET}/_next/static" \
-            --cache-control "public,max-age=31536000,immutable"
 
       - name: Invalidate CloudFront
         env:
