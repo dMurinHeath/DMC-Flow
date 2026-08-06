@@ -1,8 +1,17 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import {
+  TASK_PRIORITIES,
+  TASK_RISK_ROUTES,
+  TASK_STATUSES,
   TASK_TITLE_MAX_LENGTH,
+  canTransitionTaskStatus,
+  isTaskBlocked,
+  isTaskPriority,
+  isTaskRiskRoute,
+  isTaskStatus,
   parseTaskDraft,
+  type TaskStatus,
 } from "./task";
 
 describe("parseTaskDraft", () => {
@@ -118,5 +127,94 @@ describe("parseTaskDraft", () => {
     const snapshot = structuredClone(input);
     parseTaskDraft(input);
     expect(input).toEqual(snapshot);
+  });
+});
+
+describe("task status transitions", () => {
+  const allowedTransitions: Array<[TaskStatus, TaskStatus]> = [
+    ["inbox", "ready"],
+    ["ready", "in_progress"],
+    ["in_progress", "ready"],
+    ["in_progress", "review"],
+    ["review", "in_progress"],
+    ["review", "done"],
+    ["done", "in_progress"],
+  ];
+
+  const rejectedTransitions: Array<[TaskStatus, TaskStatus]> = [
+    ["inbox", "inbox"],
+    ["ready", "ready"],
+    ["in_progress", "in_progress"],
+    ["review", "review"],
+    ["done", "done"],
+    ["inbox", "done"],
+    ["inbox", "in_progress"],
+    ["ready", "review"],
+    ["ready", "done"],
+    ["done", "ready"],
+    ["done", "review"],
+    ["done", "inbox"],
+    ["review", "ready"],
+    ["review", "inbox"],
+  ];
+
+  it("allows every approved transition and rejects representative illegal transitions including same-status", () => {
+    for (const [from, to] of allowedTransitions) {
+      expect(canTransitionTaskStatus(from, to)).toBe(true);
+    }
+
+    for (const [from, to] of rejectedTransitions) {
+      expect(canTransitionTaskStatus(from, to)).toBe(false);
+    }
+  });
+
+  it("allows reopening a completed task to in_progress", () => {
+    expect(canTransitionTaskStatus("done", "in_progress")).toBe(true);
+  });
+});
+
+describe("isTaskBlocked", () => {
+  it("treats blocked state as independent of task status", () => {
+    expect(TASK_STATUSES).toContain("in_progress");
+    expect(
+      isTaskBlocked({
+        blockedReason: "Waiting on security review",
+      }),
+    ).toBe(true);
+    expect(isTaskBlocked({ blockedReason: null })).toBe(false);
+    expect(isTaskBlocked({ blockedReason: "   " })).toBe(false);
+    expect(isTaskBlocked({ blockedReason: "" })).toBe(false);
+  });
+});
+
+describe("task closed values and guards", () => {
+  it("exposes the exact priority values", () => {
+    expect([...TASK_PRIORITIES]).toEqual(["low", "medium", "high"]);
+  });
+
+  it("exposes the exact risk-route values", () => {
+    expect([...TASK_RISK_ROUTES]).toEqual([
+      "standard",
+      "controlled",
+      "restricted",
+    ]);
+  });
+
+  it("accepts supported status, priority and risk values and rejects unknown strings", () => {
+    for (const status of TASK_STATUSES) {
+      expect(isTaskStatus(status)).toBe(true);
+    }
+    expect(isTaskStatus("blocked")).toBe(false);
+    expect(isTaskStatus(1)).toBe(false);
+
+    for (const priority of TASK_PRIORITIES) {
+      expect(isTaskPriority(priority)).toBe(true);
+    }
+    expect(isTaskPriority("urgent")).toBe(false);
+
+    for (const route of TASK_RISK_ROUTES) {
+      expect(isTaskRiskRoute(route)).toBe(true);
+    }
+    expect(isTaskRiskRoute("elevated")).toBe(false);
   });
 });
