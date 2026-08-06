@@ -9,8 +9,23 @@ type MyFlowDashboardProps = {
   data: MyFlowDashboardData;
 };
 
+const TASK_COLUMNS =
+  "grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)]";
+
 function emphasisTextClass(emphasis: SummaryEmphasis): string {
   return emphasis === "amber" ? "text-amber" : "text-teal";
+}
+
+function OwnerMark({ initials }: { initials: string }) {
+  return (
+    <span
+      role="img"
+      aria-label={`Owner ${initials}`}
+      className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-navy text-[10px] font-semibold text-on-navy"
+    >
+      {initials}
+    </span>
+  );
 }
 
 function TaskRow({ task }: { task: MyFlowTaskRow }) {
@@ -18,13 +33,13 @@ function TaskRow({ task }: { task: MyFlowTaskRow }) {
     <li className="border-t border-border py-3 first:border-t-0">
       <div className="flex gap-3">
         <span
-          className="mt-1 size-4 shrink-0 rounded-full border border-border"
+          className="mt-1 size-4 shrink-0 rounded-full border border-border lg:mt-0.5"
           aria-hidden
         />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-navy">{task.title}</p>
-          <dl className="mt-2 grid gap-2 text-sm text-muted sm:grid-cols-3">
-            <div className="min-w-0">
+        <div className="min-w-0 flex-1 lg:grid lg:grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)] lg:items-center lg:gap-3">
+          <p className="text-sm font-medium text-navy lg:truncate">{task.title}</p>
+          <dl className="mt-2 grid gap-2 text-sm text-muted sm:grid-cols-3 lg:mt-0 lg:contents">
+            <div className="min-w-0 lg:min-w-0">
               <dt className="sr-only">Project</dt>
               <dd className="truncate">{task.project}</dd>
             </div>
@@ -34,14 +49,8 @@ function TaskRow({ task }: { task: MyFlowTaskRow }) {
             </div>
             <div className="min-w-0">
               <dt className="sr-only">Owner</dt>
-              <dd className="flex items-center gap-2">
-                <span
-                  className="flex size-6 shrink-0 items-center justify-center rounded-full bg-navy text-[10px] font-semibold text-on-navy"
-                  aria-hidden
-                >
-                  {task.ownerInitials}
-                </span>
-                <span>{task.ownerInitials}</span>
+              <dd>
+                <OwnerMark initials={task.ownerInitials} />
               </dd>
             </div>
           </dl>
@@ -69,7 +78,7 @@ function TaskSection({
         {trailing}
       </div>
       <div
-        className="mb-1 hidden grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)] gap-3 px-7 text-xs font-medium tracking-wide text-muted uppercase lg:grid"
+        className={`mb-1 hidden gap-3 pl-7 text-xs font-medium tracking-wide text-muted uppercase lg:grid ${TASK_COLUMNS}`}
         aria-hidden
       >
         <span>Task</span>
@@ -77,9 +86,11 @@ function TaskSection({
         <span>Due</span>
         <span>Owner</span>
       </div>
-      <ul>{tasks.map((task) => (
-        <TaskRow key={task.title} task={task} />
-      ))}</ul>
+      <ul>
+        {tasks.map((task) => (
+          <TaskRow key={task.title} task={task} />
+        ))}
+      </ul>
     </section>
   );
 }
@@ -103,7 +114,7 @@ export function MyFlowDashboard({ data }: MyFlowDashboardProps) {
           type="button"
           disabled
           aria-label="Add task (unavailable)"
-          className="h-10 shrink-0 cursor-not-allowed rounded-md bg-teal px-4 text-sm font-medium text-on-navy opacity-90"
+          className="h-10 shrink-0 cursor-not-allowed rounded-md border border-border bg-canvas px-4 text-sm font-medium text-muted"
         >
           Add task
         </button>

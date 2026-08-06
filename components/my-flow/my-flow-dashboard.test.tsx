@@ -37,6 +37,10 @@ describe("MyFlowDashboard", () => {
     expect(screen.getByText("Define acceptance criteria")).toBeTruthy();
     expect(screen.getByText("Prepare user research plan")).toBeTruthy();
 
+    const viewAll = screen.getByText(/View all 5/);
+    expect(viewAll).toBeTruthy();
+    expect(viewAll.closest("a")).toBeNull();
+
     expect(screen.getByText("Tenant isolation tests")).toBeTruthy();
     expect(screen.getByText("Project board interactions")).toBeTruthy();
 
