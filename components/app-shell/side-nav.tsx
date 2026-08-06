@@ -93,7 +93,7 @@ export function SideNav() {
         <ul className="flex flex-row gap-1 overflow-x-auto lg:flex-col lg:overflow-visible lg:gap-1">
           {NAV_ITEMS.map((item) => {
             const baseClass =
-              "relative flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm whitespace-nowrap transition-colors";
+              "relative flex shrink-0 items-center gap-1 rounded-md px-2 py-2 text-sm whitespace-nowrap transition-colors sm:gap-2 sm:px-3";
 
             if (item.current) {
               return (
