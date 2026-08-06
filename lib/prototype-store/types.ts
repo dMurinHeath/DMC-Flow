@@ -3,6 +3,7 @@ import type { Task } from "@/lib/domain/task";
 
 export const PROTOTYPE_STATE_STORAGE_KEY = "dmc-flow.prototype-state";
 export const PROTOTYPE_STATE_VERSION = 1 as const;
+export const PROTOTYPE_OWNER_ID = "user-dm";
 
 export type PrototypeState = {
   tasks: Task[];

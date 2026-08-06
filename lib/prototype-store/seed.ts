@@ -1,8 +1,7 @@
 import type { Project } from "@/lib/domain/project";
 import type { Task } from "@/lib/domain/task";
-import type { PrototypeState } from "./types";
+import { PROTOTYPE_OWNER_ID, type PrototypeState } from "./types";
 
-export const PROTOTYPE_OWNER_ID = "user-dm";
 export const PROJECT_ID_DMC_FLOW_PILOT = "proj-dmc-flow-pilot";
 export const PROJECT_ID_CLOUD_PLATFORM = "proj-cloud-platform";
 

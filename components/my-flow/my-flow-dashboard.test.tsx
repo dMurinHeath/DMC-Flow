@@ -1,11 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
+import { PrototypeStoreProvider } from "@/components/prototype-store/prototype-store-provider";
+import type { PrototypeStorage } from "@/lib/prototype-store/types";
 import { MyFlowDashboard } from "./my-flow-dashboard";
 import { myFlowFixture } from "./my-flow-fixtures";
 
+function createMemoryStorage(
+  initial: Record<string, string> = {},
+): PrototypeStorage {
+  const store = { ...initial };
+  return {
+    getItem(key) {
+      return Object.prototype.hasOwnProperty.call(store, key) ? store[key]! : null;
+    },
+    setItem(key, value) {
+      store[key] = value;
+    },
+  };
+}
+
 describe("MyFlowDashboard", () => {
-  it("presents the static My Flow dashboard content accessibly", () => {
-    render(<MyFlowDashboard data={myFlowFixture} />);
+  it("presents the static My Flow dashboard content accessibly", async () => {
+    render(
+      <PrototypeStoreProvider storage={createMemoryStorage()}>
+        <MyFlowDashboard data={myFlowFixture} />
+      </PrototypeStoreProvider>,
+    );
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Good morning, Danilo" }),
@@ -13,9 +33,7 @@ describe("MyFlowDashboard", () => {
     expect(
       screen.getByText("A clear view of what needs your attention."),
     ).toBeTruthy();
-    expect(
-      screen.getAllByRole("heading", { level: 1 }),
-    ).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
 
     const summary = screen.getByText("Now", { selector: "dt" }).closest("dl");
     expect(summary).toBeTruthy();
@@ -29,9 +47,7 @@ describe("MyFlowDashboard", () => {
     expect(summaryQueries.getByText("Blocked", { selector: "dt" })).toBeTruthy();
     expect(summaryQueries.getByText("1", { selector: "dd" })).toBeTruthy();
 
-    expect(
-      screen.getByText("Approve Flow Gate specification"),
-    ).toBeTruthy();
+    expect(screen.getByText("Approve Flow Gate specification")).toBeTruthy();
     expect(screen.getByText("Prototype task detail")).toBeTruthy();
     expect(screen.getByText("Review AWS deployment options")).toBeTruthy();
     expect(screen.getByText("Define acceptance criteria")).toBeTruthy();
@@ -55,9 +71,9 @@ describe("MyFlowDashboard", () => {
     expect(health.getByText("Cloud Platform")).toBeTruthy();
     expect(health.getByText("Needs attention")).toBeTruthy();
 
-    const addTask = screen.getByRole("button", {
-      name: "Add task (unavailable)",
+    const addTask = screen.getByRole("button", { name: "Add task" });
+    await waitFor(() => {
+      expect((addTask as HTMLButtonElement).disabled).toBe(false);
     });
-    expect((addTask as HTMLButtonElement).disabled).toBe(true);
   });
 });

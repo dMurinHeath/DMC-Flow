@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AddTaskQuickCapture } from "./add-task-quick-capture";
 import type {
   MyFlowDashboardData,
   MyFlowTaskRow,
@@ -110,14 +111,7 @@ export function MyFlowDashboard({ data }: MyFlowDashboardProps) {
             {data.supportingText}
           </p>
         </div>
-        <button
-          type="button"
-          disabled
-          aria-label="Add task (unavailable)"
-          className="h-10 shrink-0 cursor-not-allowed rounded-md border border-border bg-canvas px-4 text-sm font-medium text-muted"
-        >
-          Add task
-        </button>
+        <AddTaskQuickCapture />
       </header>
 
       <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-4">
