@@ -144,7 +144,9 @@ describe("MyFlowView", () => {
     await waitForDashboard();
 
     expect(summaryValue("Next")).toBe("1");
-    expect(screen.getByText("Only ready task")).toBeTruthy();
+    expect(screen.getAllByText("Only ready task").length).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(screen.getByText("View all 1")).toBeTruthy();
   });
 
@@ -233,7 +235,9 @@ describe("MyFlowView", () => {
     renderView({ state });
     await waitForDashboard();
 
-    expect(screen.getAllByText("Duplicate")).toHaveLength(2);
+    expect(
+      screen.getAllByText("Duplicate", { selector: "p" }),
+    ).toHaveLength(2);
   });
 
   it("does not change counts when only an Inbox task is added in storage", async () => {

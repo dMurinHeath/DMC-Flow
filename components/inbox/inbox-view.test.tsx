@@ -80,7 +80,7 @@ function StoreProbe() {
 
 function renderInbox(options?: {
   storage?: ReturnType<typeof createMemoryStorage>;
-  getNow?: () => string;
+  getNow?: () => Date;
   state?: PrototypeState;
 }) {
   const seed = options?.state ?? createPrototypeSeedState();
@@ -202,15 +202,15 @@ describe("InboxView", () => {
     renderInbox({ state });
     await waitForHydration();
 
-    const select = screen.getByLabelText(/Project for Needs a project/);
-    const options = within(select).getAllByRole("option").map((option) =>
-      option.textContent,
-    );
+    const select = screen.getByLabelText("Project");
+    const options = within(select)
+      .getAllByRole("option")
+      .map((option) => option.textContent);
     expect(options).toContain("Cloud Platform");
     expect(options).not.toContain("DMC Flow Pilot");
   });
 
-  it("disables Move to Ready until a project is selected", async () => {
+  it("disables Ready until a project is selected", async () => {
     const state = createPrototypeSeedState();
     state.tasks.push(
       makeInboxTask({
@@ -223,18 +223,20 @@ describe("InboxView", () => {
     renderInbox({ state });
     await waitForHydration();
 
-    const move = screen.getByRole("button", { name: "Move to Ready" });
-    expect((move as HTMLButtonElement).disabled).toBe(true);
+    const ready = screen.getByRole("button", {
+      name: "Move Unassigned to Ready",
+    });
+    expect((ready as HTMLButtonElement).disabled).toBe(true);
 
-    fireEvent.change(screen.getByLabelText(/Project for Unassigned/), {
+    fireEvent.change(screen.getByLabelText("Project"), {
       target: { value: PROJECT_ID_DMC_FLOW_PILOT },
     });
 
-    expect((move as HTMLButtonElement).disabled).toBe(false);
+    expect((ready as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("moves an inbox task to Ready and persists through remount", async () => {
-    const now = "2026-08-06T15:00:00.000Z";
+    const now = new Date("2026-08-06T15:00:00.000Z");
     const state = createPrototypeSeedState();
     state.tasks.push(
       makeInboxTask({
@@ -255,10 +257,12 @@ describe("InboxView", () => {
     });
     await waitForHydration();
 
-    fireEvent.change(screen.getByLabelText(/Project for Triage this/), {
+    fireEvent.change(screen.getByLabelText("Project"), {
       target: { value: PROJECT_ID_DMC_FLOW_PILOT },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Move to Ready" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Move Triage this to Ready" }),
+    );
 
     await waitFor(() => {
       expect(screen.queryByText("Triage this")).toBeNull();
@@ -266,7 +270,7 @@ describe("InboxView", () => {
     });
 
     expect(screen.getByTestId("ready-tasks").textContent).toContain(
-      `task-inbox-triage:${PROJECT_ID_DMC_FLOW_PILOT}:${now}`,
+      `task-inbox-triage:${PROJECT_ID_DMC_FLOW_PILOT}:${now.toISOString()}`,
     );
 
     unmount();
@@ -275,7 +279,7 @@ describe("InboxView", () => {
 
     expect(screen.queryByText("Triage this")).toBeNull();
     expect(screen.getByTestId("ready-tasks").textContent).toContain(
-      `task-inbox-triage:${PROJECT_ID_DMC_FLOW_PILOT}:${now}`,
+      `task-inbox-triage:${PROJECT_ID_DMC_FLOW_PILOT}:${now.toISOString()}`,
     );
   });
 

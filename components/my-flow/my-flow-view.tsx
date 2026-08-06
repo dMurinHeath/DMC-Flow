@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePrototypeStore } from "@/components/prototype-store/prototype-store-provider";
 import { MyFlowDashboard } from "./my-flow-dashboard";
 import {
@@ -23,6 +24,7 @@ type MyFlowViewProps = {
 
 export function MyFlowView({ getToday = defaultGetToday }: MyFlowViewProps) {
   const { state, hydrated } = usePrototypeStore();
+  const [announcement, setAnnouncement] = useState("");
 
   if (!hydrated) {
     return (
@@ -50,5 +52,12 @@ export function MyFlowView({ getToday = defaultGetToday }: MyFlowViewProps) {
   }
 
   const data = buildMyFlowDashboard(state, { today: getToday() });
-  return <MyFlowDashboard data={data} />;
+  return (
+    <>
+      <MyFlowDashboard data={data} onAnnounce={setAnnouncement} />
+      <p className="sr-only" aria-live="polite">
+        {announcement}
+      </p>
+    </>
+  );
 }

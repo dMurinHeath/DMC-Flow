@@ -54,6 +54,11 @@ describe("MyFlowDashboard", () => {
     expect(screen.getByText("Define acceptance criteria")).toBeTruthy();
     expect(screen.getByText("Prepare user research plan")).toBeTruthy();
 
+    expect(
+      screen.getByRole("button", {
+        name: "Edit Approve Flow Gate specification",
+      }),
+    ).toBeTruthy();
     const viewAll = screen.getByText(/View all 5/);
     expect(viewAll).toBeTruthy();
     expect(viewAll.closest("a")).toBeNull();

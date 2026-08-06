@@ -6,6 +6,7 @@ import {
   TASK_STATUSES,
   TASK_TITLE_MAX_LENGTH,
   canTransitionTaskStatus,
+  allowedTransitions,
   isTask,
   isTaskBlocked,
   isTaskPriority,
@@ -147,7 +148,7 @@ describe("parseTaskDraft", () => {
 });
 
 describe("task status transitions", () => {
-  const allowedTransitions: Array<[TaskStatus, TaskStatus]> = [
+  const permittedPairs: Array<[TaskStatus, TaskStatus]> = [
     ["inbox", "ready"],
     ["ready", "in_progress"],
     ["in_progress", "ready"],
@@ -175,7 +176,7 @@ describe("task status transitions", () => {
   ];
 
   it("allows every approved transition and rejects representative illegal transitions including same-status", () => {
-    for (const [from, to] of allowedTransitions) {
+    for (const [from, to] of permittedPairs) {
       expect(canTransitionTaskStatus(from, to)).toBe(true);
     }
 
@@ -186,6 +187,15 @@ describe("task status transitions", () => {
 
   it("allows reopening a completed task to in_progress", () => {
     expect(canTransitionTaskStatus("done", "in_progress")).toBe(true);
+  });
+
+  it("lists permitted next statuses via allowedTransitions helper", () => {
+    for (const from of TASK_STATUSES) {
+      const listed = allowedTransitions(from);
+      for (const to of TASK_STATUSES) {
+        expect(listed.includes(to)).toBe(canTransitionTaskStatus(from, to));
+      }
+    }
   });
 });
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { TaskEditor } from "@/components/task/task-editor";
 import { AddTaskQuickCapture } from "./add-task-quick-capture";
 import type {
   MyFlowDashboardData,
@@ -8,10 +9,11 @@ import type {
 
 type MyFlowDashboardProps = {
   data: MyFlowDashboardData;
+  onAnnounce?: (message: string) => void;
 };
 
 const TASK_COLUMNS =
-  "grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)]";
+  "grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)_minmax(0,5rem)]";
 
 function emphasisTextClass(emphasis: SummaryEmphasis): string {
   return emphasis === "amber" ? "text-amber" : "text-teal";
@@ -29,7 +31,13 @@ function OwnerMark({ initials }: { initials: string }) {
   );
 }
 
-function TaskRow({ task }: { task: MyFlowTaskRow }) {
+function TaskRow({
+  task,
+  onAnnounce,
+}: {
+  task: MyFlowTaskRow;
+  onAnnounce?: (message: string) => void;
+}) {
   return (
     <li className="border-t border-border py-3 first:border-t-0">
       <div className="flex gap-3">
@@ -37,24 +45,29 @@ function TaskRow({ task }: { task: MyFlowTaskRow }) {
           className="mt-1 size-4 shrink-0 rounded-full border border-border lg:mt-0.5"
           aria-hidden
         />
-        <div className="min-w-0 flex-1 lg:grid lg:grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)] lg:items-center lg:gap-3">
-          <p className="text-sm font-medium text-navy lg:truncate">{task.title}</p>
-          <dl className="mt-2 grid gap-2 text-sm text-muted sm:grid-cols-3 lg:mt-0 lg:contents">
-            <div className="min-w-0 lg:min-w-0">
-              <dt className="sr-only">Project</dt>
-              <dd className="truncate">{task.project}</dd>
+        <div className="min-w-0 flex-1">
+          <div className="lg:grid lg:grid-cols-[1fr_minmax(0,9rem)_minmax(0,6rem)_minmax(0,4.5rem)_minmax(0,5rem)] lg:items-start lg:gap-3">
+            <p className="text-sm font-medium text-navy lg:truncate">{task.title}</p>
+            <dl className="mt-2 grid gap-2 text-sm text-muted sm:grid-cols-3 lg:mt-0 lg:contents">
+              <div className="min-w-0 lg:min-w-0">
+                <dt className="sr-only">Project</dt>
+                <dd className="truncate">{task.project}</dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="sr-only">Due</dt>
+                <dd className="truncate">{task.due}</dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="sr-only">Owner</dt>
+                <dd>
+                  <OwnerMark initials={task.ownerInitials} />
+                </dd>
+              </div>
+            </dl>
+            <div className="mt-3 min-w-0 lg:mt-0">
+              <TaskEditor taskId={task.id} onAnnounce={onAnnounce} />
             </div>
-            <div className="min-w-0">
-              <dt className="sr-only">Due</dt>
-              <dd className="truncate">{task.due}</dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="sr-only">Owner</dt>
-              <dd>
-                <OwnerMark initials={task.ownerInitials} />
-              </dd>
-            </div>
-          </dl>
+          </div>
         </div>
       </div>
     </li>
@@ -66,11 +79,13 @@ function TaskSection({
   tasks,
   emptyMessage,
   trailing,
+  onAnnounce,
 }: {
   title: string;
   tasks: MyFlowTaskRow[];
   emptyMessage: string;
   trailing?: ReactNode;
+  onAnnounce?: (message: string) => void;
 }) {
   return (
     <section className="rounded-md border border-border bg-surface px-4 py-3">
@@ -92,10 +107,11 @@ function TaskSection({
             <span>Project</span>
             <span>Due</span>
             <span>Owner</span>
+            <span>Actions</span>
           </div>
           <ul>
             {tasks.map((task) => (
-              <TaskRow key={task.id} task={task} />
+              <TaskRow key={task.id} task={task} onAnnounce={onAnnounce} />
             ))}
           </ul>
         </>
@@ -104,7 +120,7 @@ function TaskSection({
   );
 }
 
-export function MyFlowDashboard({ data }: MyFlowDashboardProps) {
+export function MyFlowDashboard({ data, onAnnounce }: MyFlowDashboardProps) {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -144,11 +160,13 @@ export function MyFlowDashboard({ data }: MyFlowDashboardProps) {
             title="Now"
             tasks={data.nowTasks}
             emptyMessage="No tasks in progress."
+            onAnnounce={onAnnounce}
           />
           <TaskSection
             title="Next"
             tasks={data.nextTasks}
             emptyMessage="No Ready tasks yet."
+            onAnnounce={onAnnounce}
             trailing={
               <span className="text-sm font-medium text-teal">
                 {data.nextTotalLabel}
@@ -172,12 +190,15 @@ export function MyFlowDashboard({ data }: MyFlowDashboardProps) {
                 {data.reviewQueue.map((item) => (
                   <li
                     key={item.id}
-                    className="flex items-center justify-between gap-3 py-3 text-sm text-navy first:pt-0 last:pb-0"
+                    className="flex flex-col gap-3 py-3 text-sm text-navy first:pt-0 last:pb-0"
                   >
-                    <span>{item.title}</span>
-                    <span className="text-muted" aria-hidden>
-                      ›
-                    </span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span>{item.title}</span>
+                      <span className="text-muted" aria-hidden>
+                        ›
+                      </span>
+                    </div>
+                    <TaskEditor taskId={item.id} onAnnounce={onAnnounce} />
                   </li>
                 ))}
               </ul>

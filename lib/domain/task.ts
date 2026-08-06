@@ -148,6 +148,10 @@ export function canTransitionTaskStatus(
   return ALLOWED_TASK_STATUS_TRANSITIONS.has(`${from}>${to}`);
 }
 
+export function allowedTransitions(from: TaskStatus): TaskStatus[] {
+  return TASK_STATUSES.filter((to) => canTransitionTaskStatus(from, to));
+}
+
 export function parseTaskDraft(input: unknown): TaskDraftResult {
   if (!isPlainObject(input)) {
     return fail("invalid_type", "Task draft must be an object with a title.");
