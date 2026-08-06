@@ -149,10 +149,10 @@ describe("ProjectsView", () => {
 
     const pilotLink = screen.getByRole("link", { name: "DMC Flow Pilot" });
     expect(pilotLink.getAttribute("href")).toBe(
-      `/projects/${PROJECT_ID_DMC_FLOW_PILOT}`,
+      `/project?id=${PROJECT_ID_DMC_FLOW_PILOT}`,
     );
     const archivedLink = screen.getByRole("link", { name: "Legacy Board" });
-    expect(archivedLink.getAttribute("href")).toBe("/projects/proj-old");
+    expect(archivedLink.getAttribute("href")).toBe("/project?id=proj-old");
   });
 
   it("creates a project via the expandable form", async () => {

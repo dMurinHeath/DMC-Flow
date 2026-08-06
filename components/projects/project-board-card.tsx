@@ -60,7 +60,7 @@ export function ProjectBoardCard({
     >
       <p className="text-sm font-medium text-navy break-words">
         <Link
-          href={`/tasks/${row.id}`}
+          href={`/task?id=${encodeURIComponent(row.id)}`}
           draggable={false}
           className="underline-offset-2 hover:underline"
           onClick={(event) => event.stopPropagation()}

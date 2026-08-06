@@ -119,7 +119,7 @@ export function TaskDetailView({
           <DetailItem term="Project">
             {data.projectId && data.projectName ? (
               <Link
-                href={`/projects/${data.projectId}`}
+                href={`/project?id=${encodeURIComponent(data.projectId)}`}
                 className="font-medium text-teal underline-offset-2 hover:underline break-words"
               >
                 {data.projectName}

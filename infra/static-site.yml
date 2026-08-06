@@ -1,0 +1,200 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Private S3 origin behind CloudFront (OAC) for the DMC Flow static export.
+  Optional ACM certificate (us-east-1) and DNS alias. No public bucket access.
+
+Parameters:
+  AlternateDomainName:
+    Type: String
+    Default: ""
+    Description: >
+      Optional custom hostname (e.g. flow.example.com). Leave empty to use the
+      CloudFront default domain. Requires AcmCertificateArn when set.
+  AcmCertificateArn:
+    Type: String
+    Default: ""
+    Description: >
+      Optional ACM certificate ARN in us-east-1 for the alternate domain.
+      Leave empty when using the CloudFront default domain.
+
+Conditions:
+  UseCustomDomain: !And
+    - !Not [!Equals [!Ref AlternateDomainName, ""]]
+    - !Not [!Equals [!Ref AcmCertificateArn, ""]]
+
+Resources:
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-oac"
+        Description: OAC for DMC Flow static site
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  UriRewriteFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${AWS::StackName}-uri-rewrite"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Map / to /index.html and extensionless paths to .html
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+          if (uri === "/") {
+            request.uri = "/index.html";
+            return request;
+          }
+          if (uri.endsWith("/")) {
+            request.uri = uri.slice(0, -1) + ".html";
+            return request;
+          }
+          if (!uri.includes(".")) {
+            request.uri = uri + ".html";
+          }
+          return request;
+        }
+
+  HtmlCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${AWS::StackName}-html"
+        Comment: Honour short-lived HTML Cache-Control from the origin
+        DefaultTTL: 0
+        MaxTTL: 60
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  StaticAssetsCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${AWS::StackName}-static-assets"
+        Comment: Long-lived cache for content-hashed _next/static assets
+        DefaultTTL: 31536000
+        MaxTTL: 31536000
+        MinTTL: 31536000
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: true
+          EnableAcceptEncodingGzip: true
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        Comment: !Sub "DMC Flow static site (${AWS::StackName})"
+        Aliases: !If
+          - UseCustomDomain
+          - [!Ref AlternateDomainName]
+          - !Ref AWS::NoValue
+        Origins:
+          - Id: SiteBucketOrigin
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: SiteBucketOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: !Ref HtmlCachePolicy
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt UriRewriteFunction.FunctionARN
+        CacheBehaviors:
+          - PathPattern: /_next/static/*
+            TargetOriginId: SiteBucketOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: !Ref StaticAssetsCachePolicy
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: /404.html
+            ErrorCachingMinTTL: 0
+        ViewerCertificate: !If
+          - UseCustomDomain
+          - AcmCertificateArn: !Ref AcmCertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
+        PriceClass: PriceClass_100
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontOACRead
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+
+Outputs:
+  BucketName:
+    Description: Private S3 bucket for the static export
+    Value: !Ref SiteBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketName"
+  DistributionId:
+    Description: CloudFront distribution id
+    Value: !Ref Distribution
+    Export:
+      Name: !Sub "${AWS::StackName}-DistributionId"
+  DistributionDomain:
+    Description: CloudFront domain name (use unless a custom alias is configured)
+    Value: !GetAtt Distribution.DomainName
+    Export:
+      Name: !Sub "${AWS::StackName}-DistributionDomain"

@@ -10,14 +10,15 @@ export function ProjectViewTabs({
   projectId,
   active,
 }: ProjectViewTabsProps): ReactNode {
-  const base = `/projects/${projectId}`;
+  const listHref = `/project?id=${encodeURIComponent(projectId)}`;
+  const boardHref = `/project/board?id=${encodeURIComponent(projectId)}`;
   const tabClass =
     "rounded-md px-3 py-1.5 text-sm font-medium transition-colors";
 
   return (
     <nav aria-label="Project views" className="flex flex-wrap gap-2">
       <Link
-        href={base}
+        href={listHref}
         className={
           active === "list"
             ? `${tabClass} bg-navy text-on-navy`
@@ -28,7 +29,7 @@ export function ProjectViewTabs({
         List
       </Link>
       <Link
-        href={`${base}/board`}
+        href={boardHref}
         className={
           active === "board"
             ? `${tabClass} bg-navy text-on-navy`

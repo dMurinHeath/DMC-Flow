@@ -116,7 +116,7 @@ describe("ProjectDetailView", () => {
       name: "Approve Flow Gate specification",
     });
     expect(titleLink.getAttribute("href")).toBe(
-      "/tasks/task-approve-flow-gate",
+      "/task?id=task-approve-flow-gate",
     );
     expect(
       screen.getByRole("button", {
@@ -132,10 +132,10 @@ describe("ProjectDetailView", () => {
     const list = screen.getByRole("link", { name: "List" });
     const board = screen.getByRole("link", { name: "Board" });
     expect(list.getAttribute("href")).toBe(
-      `/projects/${PROJECT_ID_DMC_FLOW_PILOT}`,
+      `/project?id=${PROJECT_ID_DMC_FLOW_PILOT}`,
     );
     expect(board.getAttribute("href")).toBe(
-      `/projects/${PROJECT_ID_DMC_FLOW_PILOT}/board`,
+      `/project/board?id=${PROJECT_ID_DMC_FLOW_PILOT}`,
     );
     expect(list.getAttribute("aria-current")).toBe("page");
     expect(board.getAttribute("aria-current")).toBeNull();

@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  GitHub Actions OIDC federation and a least-privilege deploy role for
+  publishing the DMC Flow static site. Trust is scoped to this repository and
+  the main branch only.
+
+Parameters:
+  CreateOIDCProvider:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: >
+      Set to false if the account already has an IAM OIDC provider for
+      token.actions.githubusercontent.com (an account may only have one).
+  ExistingOIDCProviderArn:
+    Type: String
+    Default: ""
+    Description: >
+      Required when CreateOIDCProvider is false. ARN of the existing
+      token.actions.githubusercontent.com OIDC provider.
+  SiteBucketName:
+    Type: String
+    Description: S3 bucket name from the static-site stack BucketName output
+  DistributionId:
+    Type: String
+    Description: CloudFront distribution id from the static-site stack
+
+Conditions:
+  ShouldCreateOIDCProvider: !Equals [!Ref CreateOIDCProvider, "true"]
+
+Resources:
+  GitHubOIDCProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: ShouldCreateOIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        # GitHub Actions OIDC root CA thumbprint (required by IAM; federation
+        # also validates the JWT signature against current JWKS).
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-github-deploy"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If
+                - ShouldCreateOIDCProvider
+                - !Ref GitHubOIDCProvider
+                - !Ref ExistingOIDCProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: repo:dMurinHeath/DMC-Flow:ref:refs/heads/main
+      Policies:
+        - PolicyName: StaticSiteDeploy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListBucket
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub "arn:aws:s3:::${SiteBucketName}"
+              - Sid: ObjectReadWriteDelete
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub "arn:aws:s3:::${SiteBucketName}/*"
+              - Sid: InvalidateDistribution
+                Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionId}"
+
+Outputs:
+  RoleArn:
+    Description: IAM role ARN for GitHub Actions (configure-aws-credentials)
+    Value: !GetAtt DeployRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-RoleArn"
+  OIDCProviderArn:
+    Description: OIDC provider ARN used by the deploy role trust policy
+    Value: !If
+      - ShouldCreateOIDCProvider
+      - !Ref GitHubOIDCProvider
+      - !Ref ExistingOIDCProviderArn
