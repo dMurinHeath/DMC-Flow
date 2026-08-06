@@ -119,6 +119,22 @@ describe("ProjectDetailView", () => {
     ).toBeTruthy();
   });
 
+  it("exposes List and Board view tabs with List current", async () => {
+    renderDetail(PROJECT_ID_DMC_FLOW_PILOT);
+    await waitForHydration();
+
+    const list = screen.getByRole("link", { name: "List" });
+    const board = screen.getByRole("link", { name: "Board" });
+    expect(list.getAttribute("href")).toBe(
+      `/projects/${PROJECT_ID_DMC_FLOW_PILOT}`,
+    );
+    expect(board.getAttribute("href")).toBe(
+      `/projects/${PROJECT_ID_DMC_FLOW_PILOT}/board`,
+    );
+    expect(list.getAttribute("aria-current")).toBe("page");
+    expect(board.getAttribute("aria-current")).toBeNull();
+  });
+
   it("renders archived project tasks without TaskEditor and states why", async () => {
     const state = createPrototypeSeedState();
     state.projects = state.projects.map((project) =>

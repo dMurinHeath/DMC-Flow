@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useId, useState } from "react";
 import { usePrototypeStore } from "@/components/prototype-store/prototype-store-provider";
 import { TaskEditor } from "@/components/task/task-editor";
@@ -11,6 +10,12 @@ import {
   TASK_SORT_MODES,
   type TaskSortMode,
 } from "@/lib/prototype-store/task-order";
+import {
+  ProjectArchivedNotice,
+  ProjectHeader,
+  ProjectNotFound,
+} from "./project-header";
+import { ProjectViewTabs } from "./project-view-tabs";
 
 const SORT_LABELS: Record<TaskSortMode, string> = {
   default: "Default",
@@ -25,11 +30,6 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
   medium: "Medium",
   low: "Low",
 };
-
-const HEALTH_LABELS = {
-  on_track: "On track",
-  needs_attention: "Needs attention",
-} as const;
 
 function defaultGetToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -71,25 +71,7 @@ export function ProjectDetailView({
   });
 
   if (!result.ok) {
-    return (
-      <div className="flex min-w-0 flex-col gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-navy">
-          Project not found
-        </h1>
-        <p className="text-sm text-muted" role="status">
-          This project is not in your workspace. It may have been removed, or
-          the link may be incorrect.
-        </p>
-        <p>
-          <Link
-            href="/projects"
-            className="text-sm font-medium text-teal underline-offset-2 hover:underline"
-          >
-            Back to Projects
-          </Link>
-        </p>
-      </div>
-    );
+    return <ProjectNotFound />;
   }
 
   const { data } = result;
@@ -103,42 +85,10 @@ export function ProjectDetailView({
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <header className="min-w-0">
-        <p className="text-xs font-semibold tracking-[0.16em] text-teal uppercase">
-          <Link
-            href="/projects"
-            className="underline-offset-2 hover:underline"
-          >
-            Projects
-          </Link>
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-navy break-words lg:text-3xl">
-          {project.name}
-        </h1>
-        {project.description ? (
-          <p className="mt-2 text-sm text-muted lg:text-base break-words">
-            {project.description}
-          </p>
-        ) : null}
-        <p
-          className={
-            project.health === "needs_attention"
-              ? "mt-2 text-sm text-amber"
-              : "mt-2 text-sm text-teal"
-          }
-        >
-          {HEALTH_LABELS[project.health]}
-          {project.archived ? " · Archived" : null}
-        </p>
-      </header>
+      <ProjectHeader project={project} />
+      <ProjectViewTabs projectId={projectId} active="list" />
 
-      {readOnly ? (
-        <p className="rounded-md border border-border bg-surface px-4 py-3 text-sm text-muted" role="status">
-          This project is archived, so tasks are read-only here. Editing would
-          fail because an archived project cannot be kept on a task draft.
-          Restore the project from the Projects list to edit again.
-        </p>
-      ) : null}
+      {readOnly ? <ProjectArchivedNotice /> : null}
 
       <section aria-labelledby={listLabelId} className="flex min-w-0 flex-col gap-3">
         <div className="flex min-w-0 flex-wrap items-end justify-between gap-3">
@@ -190,8 +140,9 @@ export function ProjectDetailView({
             </p>
           </div>
         ) : (
-          <div className="min-w-0 overflow-x-auto rounded-md border border-border bg-surface">
-            <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)]">
+            <div className="min-w-0 overflow-x-auto rounded-md border border-border bg-surface">
+              <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
               <caption className="sr-only">
                 Tasks in {project.name}, sorted by {SORT_LABELS[sort]}
               </caption>
@@ -260,6 +211,7 @@ export function ProjectDetailView({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </section>
