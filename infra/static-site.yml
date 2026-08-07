@@ -37,6 +37,23 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          # Bounds version history while preserving the rollback path in
+          # docs/deployment.md section 6: a version is expired only when it is
+          # older than 30 days AND at least 5 newer noncurrent versions exist.
+          - Id: ExpireOldNoncurrentVersions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+              NewerNoncurrentVersions: 5
+          - Id: AbortIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+          # Deliberately absent: an age-based expiration on _next/static/.
+          # Content-hashed assets are still referenced long after they stop
+          # changing, so expiring them by age would break the live site.
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
