@@ -151,16 +151,141 @@ Rehearse rollback once before you need it.
 
 ## 7. Tear down
 
-Empty the bucket (including all object versions), then delete the stacks
-(OIDC role stack first is fine if nothing else depends on the role; delete
-the site stack after the bucket is empty):
+Follow these steps in order. Skipping ahead — especially emptying the bucket
+before stopping the pipeline, or deleting the site stack before the bucket is
+truly empty — is what makes teardown fail.
+
+Leaving `infra/` and this runbook in the repository is intentional: they are
+how the site is rebuilt. Teardown is fully reversible except that a rebuild
+produces a new CloudFront domain and a new bucket name.
+
+### 1. Stop the pipeline
+
+While `.github/workflows/deploy.yml` is active, any push or merge to `main`
+re-uploads objects into the bucket you are about to empty.
+
+Prefer disabling the **Deploy** workflow in the GitHub Actions UI (Actions →
+Deploy → ⋯ → Disable workflow). That is reversible if you decide to redeploy
+later. Alternatively, remove the workflow file via pull request — permanent
+until restored.
+
+Do not proceed until Deploy can no longer run.
+
+### 2. Revoke deploy credentials
+
+Delete the OIDC stack so nothing can assume the deploy role and write to the
+bucket while it is being emptied.
+
+First check whether the GitHub OIDC provider is shared with other workloads:
 
 ```bash
-# After emptying all object versions from the bucket:
-aws cloudformation delete-stack --stack-name dmc-flow-github-oidc
-aws cloudformation delete-stack --stack-name dmc-flow-static-site
+aws iam list-open-id-connect-providers
 ```
 
-If `CreateOIDCProvider=true` created the account’s only GitHub OIDC provider,
-deleting that stack removes it — other workloads using the same provider would
-be affected. Prefer `CreateOIDCProvider=false` when the provider is shared.
+The provider ARN is deterministic:
+
+`arn:aws:iam::<account>:oidc-provider/token.actions.githubusercontent.com`
+
+If this stack created the provider (`CreateOIDCProvider=true`), deleting the
+stack removes that provider. Other roles that federate through it would break
+until the provider is recreated; because the ARN is fixed, recreating it and
+leaving dependent trust policies unchanged restores them.
+
+Then delete the stack:
+
+```bash
+aws cloudformation delete-stack \
+  --stack-name dmc-flow-github-oidc \
+  --region REGION
+aws cloudformation wait stack-delete-complete \
+  --stack-name dmc-flow-github-oidc \
+  --region REGION
+```
+
+### 3. Empty the bucket (versions and delete markers)
+
+The site bucket has versioning enabled. `aws s3 rm --recursive` is not enough:
+it writes delete markers and leaves prior versions in place, so CloudFormation
+still sees a non-empty bucket and refuses to delete it. Every object version
+**and** every delete marker must go.
+
+Look up the bucket name from the site stack (CloudFormation generates it; do
+not rely on memory):
+
+```bash
+BUCKET=$(aws cloudformation describe-stacks \
+  --stack-name dmc-flow-static-site --region REGION \
+  --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
+  --output text)
+```
+
+**Console (easier for a one-off):** open the bucket in the S3 console → Empty.
+Confirm when prompted. That removes versions and delete markers.
+
+**CLI (paginated loop):**
+
+```bash
+while true; do
+  PAYLOAD=$(aws s3api list-object-versions --bucket "$BUCKET" --max-keys 500 \
+    --query '{Objects: [Versions, DeleteMarkers][].{Key: Key, VersionId: VersionId}}' \
+    --output json)
+  echo "$PAYLOAD" | grep -q '"Objects": null' && break
+  aws s3api delete-objects --bucket "$BUCKET" --delete "$PAYLOAD" >/dev/null
+done
+```
+
+Verify before deleting the site stack (expect no Versions or DeleteMarkers):
+
+```bash
+aws s3api list-object-versions --bucket "$BUCKET" --region REGION
+```
+
+### 4. Delete the site stack
+
+```bash
+aws cloudformation delete-stack \
+  --stack-name dmc-flow-static-site \
+  --region REGION
+aws cloudformation wait stack-delete-complete \
+  --stack-name dmc-flow-static-site \
+  --region REGION
+```
+
+CloudFront distributions must be disabled and propagated to every edge before
+they can be removed. Expect **15 to 45 minutes** of silence from `wait`; that
+is normal, not a hang.
+
+### 5. Remove GitHub repository variables
+
+Delete `AWS_DEPLOY_ROLE_ARN`, `AWS_REGION`, `AWS_S3_BUCKET`, and
+`AWS_CLOUDFRONT_DISTRIBUTION_ID` from the repository Actions variables.
+
+Leave branch protection on `main` in place unless you have a reason to remove
+it.
+
+### 6. Verify nothing is orphaned
+
+Confirm both stacks are gone:
+
+```bash
+aws cloudformation describe-stacks \
+  --stack-name dmc-flow-static-site --region REGION
+aws cloudformation describe-stacks \
+  --stack-name dmc-flow-github-oidc --region REGION
+```
+
+Both should report that the stack does not exist. Optionally re-check
+`list-open-id-connect-providers` if you intended the GitHub OIDC provider to
+be removed with the OIDC stack.
+
+### Recovery
+
+**Site stack `DELETE_FAILED` because the bucket is not empty.** Something was
+left behind (usually versions or delete markers). Re-run step 3 until
+`list-object-versions` is empty, then retry `delete-stack` / `wait` on
+`dmc-flow-static-site`.
+
+**CloudFront / distribution deletion fails or stalls.** In the CloudFront
+console, disable the distribution if it is still enabled, wait until its
+status is **Deployed**, then retry deleting the site stack. Allowance of
+15–45 minutes still applies after disable.
