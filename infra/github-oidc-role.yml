@@ -58,7 +58,10 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: repo:dMurinHeath/DMC-Flow:ref:refs/heads/main
+                # Immutable subject claim. Repositories created after 15 July 2026
+                # embed the numeric owner and repository ids, so a recycled
+                # owner/repo name cannot mint a token matching this policy.
+                token.actions.githubusercontent.com:sub: repo:dMurinHeath@312453176/DMC-Flow@1324198713:ref:refs/heads/main
       Policies:
         - PolicyName: StaticSiteDeploy
           PolicyDocument:
